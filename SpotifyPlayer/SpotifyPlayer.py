@@ -14,7 +14,7 @@
 #
 # Dependencies: SpotifyCredentials.txt,
 #               client_secret.json,
-#               SpotifyPLayer (Responses)
+#               SpotifyPlayer (Responses)
 #
 # Execution:    python SpotifyPlayer.py (username)
 # 
@@ -27,9 +27,13 @@ import spotipy.util as util
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import threading
+from notify_run import Notify
+
+# setting up phone notifications
+notify = Notify()
 
 # setting the scopes for the two APIs
-spotScope = 'streaming' # so that I can access my current queue
+spotScope = 'streaming'     # scope so that I can access my current queue
 spreadScope = ['https://spreadsheets.google.com/feeds',
                'https://www.googleapis.com/auth/drive']
 
@@ -77,15 +81,25 @@ def add():
             song_to_add = sp.search(query, limit=1, offset=0, type='track', market=None)    # running a search in spotify
 
             # getting the track uri from the search results (it returns a whole bunch of stuff)
-            # need to make sure the search returned something, so track cannot be empty
-            # avoid adding duplicates, so track cannot have already been added
             track = song_to_add['tracks']['items']
             global songs_added  # global to remain consisten across threads
 
+            # need to make sure the search returned something, so track cannot be empty
+            # avoid adding duplicates, so track cannot have already been added
             if track and not track[0]['uri'] in songs_added: 
                 uri = track[0]['uri']   # uri that is able to be added to the queue in spotify  
                 sp.add_to_queue(uri, device_id=None)    # add the song to the current queue
                 songs_added.append(uri) # add song to list of songs already added
+
+            # if the search didn't return anything, then send a phone notification 
+            elif not track:
+                message = query + " not found"
+                notify.send(message)
+
+            # if the song was already added, send a phone notification
+            elif track[0]['uri'] in songs_added:
+                message = query + " already in queue"
+                notify.send(message)
 
             count += 1
             
