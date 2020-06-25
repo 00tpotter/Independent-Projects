@@ -6,7 +6,7 @@
 #               a QR code linked to a Google Form
 #               that accepts a song title and
 #               artist.
-# 
+#
 # Requirements: Access to the Spotify API, Google
 #               Drive API, and Google Sheets API,
 #               an instance of Spotify open and
@@ -17,7 +17,7 @@
 #               SpotifyPlayer (Responses)
 #
 # Execution:    python SpotifyPlayer.py (username)
-# 
+#
 # Author: Teddy Potter
 # *************************************************
 
@@ -61,7 +61,7 @@ count = 0   # count of current songs added
 songs_added = []    # list to keep track of the songs already added, used to avoid duplicates
 
 # main function to add songs to the queue
-# the reason it is a function is so that I can use threading to call it every 5 seconds
+# the reason it's a function is so that I can use threading to call it every 5 seconds
 def add():
     if token:
         sp = spotipy.Spotify(auth=token)
@@ -73,7 +73,7 @@ def add():
             song = list_of_songs[count]['Song title']
             artist = list_of_songs[count]['Artist name']
             query = 'track:' + song + ' artist:' + artist   # query formatting to prioritize track name and then artist
-            
+
             # if artist is empty, just search for the song title
             if artist == '':
                 query = 'track:' + song
@@ -86,12 +86,12 @@ def add():
 
             # need to make sure the search returned something, so track cannot be empty
             # avoid adding duplicates, so track cannot have already been added
-            if track and not track[0]['uri'] in songs_added: 
-                uri = track[0]['uri']   # uri that is able to be added to the queue in spotify  
+            if track and not track[0]['uri'] in songs_added:
+                uri = track[0]['uri']   # uri that is able to be added to the queue in spotify
                 sp.add_to_queue(uri, device_id=None)    # add the song to the current queue
                 songs_added.append(uri) # add song to list of songs already added
 
-            # if the search didn't return anything, then send a phone notification 
+            # if the search didn't return anything, then send a phone notification
             elif not track:
                 message = query + " not found"
                 notify.send(message)
@@ -102,7 +102,7 @@ def add():
                 notify.send(message)
 
             count += 1
-            
+
     else:
         print("Can't get token for", username)
 
