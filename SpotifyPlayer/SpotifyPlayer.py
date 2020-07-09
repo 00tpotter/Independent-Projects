@@ -6,7 +6,7 @@
 #               a QR code linked to a Google Form
 #               that accepts a song title and
 #               artist.
-#
+# 
 # Requirements: Access to the Spotify API, Google
 #               Drive API, and Google Sheets API,
 #               an instance of Spotify open and
@@ -17,7 +17,7 @@
 #               SpotifyPlayer (Responses)
 #
 # Execution:    python SpotifyPlayer.py (username)
-#
+# 
 # Author: Teddy Potter
 # *************************************************
 
@@ -28,12 +28,20 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import threading
 from notify_run import Notify
+import pprint
+
+from urllib import *
+from graphics import *
+from colorthief import ColorThief
+import io
+import time
+from blinkstick import blinkstick
 
 # setting up phone notifications
 notify = Notify()
 
 # setting the scopes for the two APIs
-spotScope = 'streaming'     # scope so that I can access my current queue
+spotScope = 'streaming user-read-playback-state'    # scope so that I can access my current queue
 spreadScope = ['https://spreadsheets.google.com/feeds',
                'https://www.googleapis.com/auth/drive']
 
@@ -60,9 +68,14 @@ count = 0   # count of current songs added
 
 songs_added = []    # list to keep track of the songs already added, used to avoid duplicates
 
+sp = spotipy.Spotify(auth=token)
+curr = sp.current_user_playing_track()
+
+strip = blinkstick.find_first()
+
 # main function to add songs to the queue
-# the reason it's a function is so that I can use threading to call it every 5 seconds
-def add():
+# the reason it is a function is so that I can use threading to call it every 5 seconds
+def add_song():
     if token:
         sp = spotipy.Spotify(auth=token)
         list_of_songs = sheet.get_all_records()
@@ -73,7 +86,7 @@ def add():
             song = list_of_songs[count]['Song title']
             artist = list_of_songs[count]['Artist name']
             query = 'track:' + song + ' artist:' + artist   # query formatting to prioritize track name and then artist
-
+            
             # if artist is empty, just search for the song title
             if artist == '':
                 query = 'track:' + song
@@ -86,12 +99,12 @@ def add():
 
             # need to make sure the search returned something, so track cannot be empty
             # avoid adding duplicates, so track cannot have already been added
-            if track and not track[0]['uri'] in songs_added:
-                uri = track[0]['uri']   # uri that is able to be added to the queue in spotify
+            if track and not track[0]['uri'] in songs_added: 
+                uri = track[0]['uri']   # uri that is able to be added to the queue in spotify  
                 sp.add_to_queue(uri, device_id=None)    # add the song to the current queue
                 songs_added.append(uri) # add song to list of songs already added
 
-            # if the search didn't return anything, then send a phone notification
+            # if the search didn't return anything, then send a phone notification 
             elif not track:
                 message = query + " not found"
                 notify.send(message)
@@ -106,7 +119,43 @@ def add():
     else:
         print("Can't get token for", username)
 
-    threading.Timer(5, add).start()     # create a thread every 5 seconds that runs the function
+    threading.Timer(5, add_song).start()     # create a thread every 5 seconds that runs the function
+
+def album_art_color():
+    if token:
+        sp = spotipy.Spotify(auth=token)
+        current_song = sp.current_user_playing_track()
+
+        global curr
+        if curr['item']['name'] == current_song['item']['name']:
+            threading.Timer(2, album_art_color).start()
+            return
+
+        album = current_song['item']['album']
+        image_url = album['images'][0]['url']
+
+        curr = current_song
+
+        fd = urlopen(image_url)
+        f = io.BytesIO(fd.read())
+        cf = ColorThief(f)
+        palette = cf.get_palette(color_count=9, quality=1)
+        print(palette)
+
+        for i in range(8):
+            r = palette[i][0]
+            g = palette[i][1]
+            b = palette[i][2]
+            for x in range(4):
+                strip.set_color(index=(i*4)+x, red=r, green=g, blue=b)
+            time.sleep(.02)
+
+    else:
+        print("Can't get token for", username)
+
+    threading.Timer(2, album_art_color).start()
+    
 
 print("Running... (ctrl+C or ctrl+pause to end)")
-add()
+add_song()
+album_art_color()
