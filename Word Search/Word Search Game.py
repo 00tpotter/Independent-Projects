@@ -3,13 +3,13 @@
 #
 # Description:  A program that generates word
 #               searches.
-# 
+#
 # Requirements: numpy and tkinter installed
 #
 # Dependencies: words.txt
 #
 # Execution:    python 'Word Search.py'
-# 
+#
 # Author:       Teddy Potter
 # *************************************************
 
@@ -19,7 +19,7 @@ import pygame
 import copy
 
 # Variables for dimensions of board and number of words to find; can be adjusted
-size = 17   
+size = 17
 numberOfWords = 25
 
 letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
@@ -171,8 +171,9 @@ height = 1090
 
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
-font = pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 32)
-small_font = pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 28)
+#font = pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 32)
+font = pygame.font.SysFont("consola", 32)
+small_font = pygame.font.SysFont("consola", 28) #pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 28)
 
 
 running = True
@@ -214,7 +215,7 @@ while running:
                 print(b[selY][selX])
                 print(selected)
                 print("Click ", pos, "Grid coordinates: ", row, column)
-            
+
             # Action for check word buttton pressed
             if (pos[0] < width // 2 and pos[0] >= 0) and (pos[1] < height and pos[1] >= 1050):
                 check_color = dark_grey
@@ -283,7 +284,7 @@ while running:
             letter = font.render(a[row][col], True, black, letter_color)
             letterRect = letter.get_rect()
             letterRect.center = (col * 50 + 25, row * 50 + 25)
-            pygame.draw.rect(screen, letter_color, [50 * col, 50 * row, 50, 50])      
+            pygame.draw.rect(screen, letter_color, [50 * col, 50 * row, 50, 50])
             screen.blit(letter, letterRect)
 
     # Display all the words at the bottom of the screen
@@ -299,7 +300,7 @@ while running:
         word = small_font.render(used_words[i], True, black, word_color)
         wordRect = word.get_rect()
         wordRect.center = (col * 170 + 85, (row * 40 + 20) + 850)
-        pygame.draw.rect(screen, word_color, [170 * col, (40 * row) + 850, 170, 40])      
+        pygame.draw.rect(screen, word_color, [170 * col, (40 * row) + 850, 170, 40])
         screen.blit(word, wordRect)
 
 
@@ -307,13 +308,13 @@ while running:
     check = font.render("CHECK WORD", True, black, check_color)
     checkRect = check.get_rect()
     checkRect.center = (width // 4, height - 20)
-    pygame.draw.rect(screen, check_color, [0, 1050, 850, 40])     
+    pygame.draw.rect(screen, check_color, [0, 1050, 850, 40])
     screen.blit(check, checkRect)
 
     clear = font.render("CLEAR", True, black, clear_color)
     clearRect = clear.get_rect()
     clearRect.center = (width - (width // 4), height - 20)
-    pygame.draw.rect(screen, clear_color, [width // 2, 1050, 850, 40])     
+    pygame.draw.rect(screen, clear_color, [width // 2, 1050, 850, 40])
     screen.blit(clear, clearRect)
 
 
