@@ -17,6 +17,8 @@ import random
 import numpy as np
 import pygame
 import copy
+import os
+import sys
 
 # Variables for dimensions of board and number of words to find; can be adjusted
 size = 17
@@ -156,7 +158,20 @@ b = copy.deepcopy(a)
 
 # ---------------------------------------- #
 pygame.init()
+pygame.display.set_caption('Word Search Game')
 
+
+# Variables for screen and fonts
+width = 850
+height = 1130
+
+screen = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
+font = pygame.font.SysFont("consola", 32)
+small_font = pygame.font.SysFont("consola", 28) #pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 28)
+
+
+# Some initial colors
 white = (255, 255, 255)
 light_yellow = (255, 255, 200)
 black = (0, 0, 0)
@@ -165,23 +180,15 @@ dark_grey = (175, 175, 175)
 light_blue = (200, 200, 255)
 dark_blue = (175, 175, 230)
 light_green = (200, 255, 200)
+light_orange = (255, 200, 145)
+light_red = (255, 200, 200)
 
-width = 850
-height = 1090
-
-screen = pygame.display.set_mode((width, height))
-clock = pygame.time.Clock()
-#font = pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 32)
-font = pygame.font.SysFont("consola", 32)
-small_font = pygame.font.SysFont("consola", 28) #pygame.font.Font('C:\WINDOWS\FONTS\CONSOLA.TTF', 28)
-
-
-running = True
 letter_color = white
 word_color = white
 check_color = grey
 clear_color = grey
 
+# Other miscellaneous variables
 selX = -1
 selY = -1
 selected = []
@@ -189,7 +196,9 @@ selected = []
 correct = []
 correctLetters = []
 
+running = True
 drag = False
+win = False
 
 while running:
     # Actions/events from input
@@ -202,10 +211,10 @@ while running:
             pos = pygame.mouse.get_pos()
             # Change the x/y screen coordinates to grid coordinates
             column = pos[0] // 50
-            row = pos[1] // 50
+            row = (pos[1] - 50) // 50
 
             # Action for letters being selected
-            if (column < size and column >= 0) and (row < size and row >= 0):
+            if (column < size and column >= 0) and (row < size and row >= 0) and not win:
                 drag = True
 
                 selX = column
@@ -217,7 +226,7 @@ while running:
                 print("Click ", pos, "Grid coordinates: ", row, column)
 
             # Action for check word buttton pressed
-            if (pos[0] < width // 2 and pos[0] >= 0) and (pos[1] < height and pos[1] >= 1050):
+            if (pos[0] < width // 2 and pos[0] >= 0) and (pos[1] < 40 and pos[1] >= 0) and not win:
                 check_color = dark_grey
                 if checkSelection(selected):
                     correct.append(checkSelection(selected))
@@ -228,10 +237,16 @@ while running:
                 print("Check word pressed")
 
             # Action for clear word buttton pressed
-            if (pos[0] < width and pos[0] >= width // 2) and (pos[1] < height and pos[1] >= 1050):
+            if (pos[0] < width and pos[0] >= width // 2) and (pos[1] < 40 and pos[1] >= 0) and not win:
                 clear_color = dark_blue
                 clearSelection(selected)
                 print("Clear word pressed")
+
+            if (pos[0] < width // 2 and pos[0] >= 0) and (pos[1] < height and pos[1] >= 1050):
+                #os.execl(sys.executable, os.path.abspath("Word Search Game.py"), *sys.argv)
+                os.execv(sys.executable, ['python'] + [os.path.abspath("Word Search Game.py")])
+                #os.execv(__file__, sys.argv)
+
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             drag = False
@@ -240,7 +255,7 @@ while running:
             pos = pygame.mouse.get_pos()
             # Change the x/y screen coordinates to grid coordinates
             column = pos[0] // 50
-            row = pos[1] // 50
+            row = (pos[1] - 50) // 50
             if (column, row) not in selected:
                 selected.append((column, row))
 
@@ -249,7 +264,7 @@ while running:
             pos = pygame.mouse.get_pos()
             # Change the x/y screen coordinates to grid coordinates
             column = pos[0] // 50
-            row = pos[1] // 50
+            row = (pos[1] - 50) // 50
 
             # Action for letters being selected
             if (column < size and column >= 0) and (row < size and row >= 0):
@@ -283,8 +298,8 @@ while running:
 
             letter = font.render(a[row][col], True, black, letter_color)
             letterRect = letter.get_rect()
-            letterRect.center = (col * 50 + 25, row * 50 + 25)
-            pygame.draw.rect(screen, letter_color, [50 * col, 50 * row, 50, 50])
+            letterRect.center = (col * 50 + 25, row * 50 + 65)
+            pygame.draw.rect(screen, letter_color, [50 * col, 50 * row + 40, 50, 50])
             screen.blit(letter, letterRect)
 
     # Display all the words at the bottom of the screen
@@ -299,23 +314,44 @@ while running:
 
         word = small_font.render(used_words[i], True, black, word_color)
         wordRect = word.get_rect()
-        wordRect.center = (col * 170 + 85, (row * 40 + 20) + 850)
-        pygame.draw.rect(screen, word_color, [170 * col, (40 * row) + 850, 170, 40])
+        wordRect.center = (col * 170 + 85, (row * 40 + 20) + 890)
+        pygame.draw.rect(screen, word_color, [170 * col, (40 * row) + 890, 170, 40])
         screen.blit(word, wordRect)
 
 
     # Check word and clear buttons
     check = font.render("CHECK WORD", True, black, check_color)
     checkRect = check.get_rect()
-    checkRect.center = (width // 4, height - 20)
-    pygame.draw.rect(screen, check_color, [0, 1050, 850, 40])
+    #checkRect.center = (width // 4, height - 20)
+    #pygame.draw.rect(screen, check_color, [0, 1050, 850, 40])
+    checkRect.center = (width // 4, 20)
+    pygame.draw.rect(screen, check_color, [0, 0, width // 2, 40])
     screen.blit(check, checkRect)
 
     clear = font.render("CLEAR", True, black, clear_color)
     clearRect = clear.get_rect()
-    clearRect.center = (width - (width // 4), height - 20)
-    pygame.draw.rect(screen, clear_color, [width // 2, 1050, 850, 40])
+    #clearRect.center = (width - (width // 4), height - 20)
+    #pygame.draw.rect(screen, clear_color, [width // 2, 1050, 850, 40])
+    clearRect.center = (width - (width // 4), 20)
+    pygame.draw.rect(screen, clear_color, [width // 2, 0, width // 2, 40])
     screen.blit(clear, clearRect)
+
+    # New game button and timer
+    new = font.render("NEW GAME", True, black, light_red)
+    newRect = new.get_rect()
+    newRect.center = (width // 4, height - 20)
+    pygame.draw.rect(screen, light_red, [0, 1090, width // 2, 40])
+    screen.blit(new, newRect)
+
+
+    # Win condition
+    if len(correct) == numberOfWords:
+        win = True
+        complete = font.render("Puzzle complete!", True, black, light_orange)
+        completeRect = complete.get_rect()
+        completeRect.center = (width // 2, 20)
+        pygame.draw.rect(screen, light_orange, [0, 0, 850, 40])
+        screen.blit(complete, completeRect)
 
 
     clock.tick(60)
